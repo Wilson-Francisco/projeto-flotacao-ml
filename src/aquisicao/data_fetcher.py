@@ -13,7 +13,7 @@ COLUNAS_REQUISITADAS = [
     'Flotation Column 07 Air Flow', 'Flotation Column 01 Level', 'Flotation Column 02 Level',
     'Flotation Column 03 Level', 'Flotation Column 04 Level', 'Flotation Column 05 Level',
     'Flotation Column 06 Level', 'Flotation Column 07 Level', '% Iron Concentrate',
-    '% Silica Concentrat'
+    '% Silica Concentrate'
 ]
 
 def ler_csv_da_planta(caminho_arquivo: str) -> pd.DataFrame:
@@ -39,3 +39,5 @@ def ler_csv_da_planta(caminho_arquivo: str) -> pd.DataFrame:
         
     logger.info(f"Leitura concluída com sucesso. Linhas carregadas: {len(df)}. Estrutura validada.")
     return df[COLUNAS_REQUISITADAS]
+
+
