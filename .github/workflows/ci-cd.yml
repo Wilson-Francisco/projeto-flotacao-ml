@@ -20,7 +20,7 @@ jobs:
 
     # Configura o ambiente Python na máquina virtual
     - name: Set up Python
-      uses: actions/actions-python@v5
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10' # Versão estável do Python para projetos de ML
 
