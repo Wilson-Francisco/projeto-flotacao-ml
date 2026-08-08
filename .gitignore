@@ -1,0 +1,20 @@
+# Dados e Modelos locais
+data/
+models/
+
+# MLflow local 
+mlruns/
+mlartifacts/
+
+# Python e Ambientes Virtuais
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
+
+# VS Code e Sistemas Operacionais
+.vscode/
+.DS_Store
+Thumba.db
