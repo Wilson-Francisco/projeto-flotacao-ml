@@ -1,0 +1,18 @@
+# Manipulação de Dados e Análise
+pandas
+numpy
+
+# Machine Learning e MLOps
+xgboost
+scikit-learn
+mlflow
+flake8
+
+# API e Servidor Web
+fastapi
+uvicorn[standard]
+pydantic
+
+# Desenvolvimento e Testes
+pytest
+ipykernel
