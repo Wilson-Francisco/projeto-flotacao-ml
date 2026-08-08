@@ -33,10 +33,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    # Instala as dependências listadas no seu requirements.txt
+    # Instala as dependências listadas do requirements.txt
     - name: Install dependencies
       run: |
-        python -m pip upgrade pip
+        python -m pip install --upgrade pip  
         pip install -r requirements.txt
 
     # Verifica erros de sintaxe Python e padrões de código
