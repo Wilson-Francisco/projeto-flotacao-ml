@@ -4,78 +4,77 @@ from src.aquisicao.data_fetcher import ler_csv_da_planta
 from src.utils.math_helpers import remover_outliers_iqr
 from src.utils.logger import configurando_logger
 
-
-
-
 logger = configurando_logger()
-
 
 class FlotationETL(BaseETL):
     """
-    Implementação do pipeline de ETL para o processo industrial
-    da planta de flotação de minério de ferro
+    Pipeline de ETL otimizado com base nos testes de hipóteses estatísticas.
     """
 
     def extract(self) -> pd.DataFrame:
-        """Busca e valida o arquivo CSV configurado usando o módulo de aquisição"""
-        caminho_entrada = self.config.get("file_path", "data/dados_flotacao.csv")
+        """Busca e valida o arquivo CSV configurado usando o módulo de aquisição."""
+        caminho_entrada = self.config.get("file_path", "data/MiningProcess_Flotation_Plant_Database.csv")
         return ler_csv_da_planta(caminho_entrada)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Aplica limpeza de ruídos nos sensores e gera os atrasos temporais (lags)."""
-        logger.info("Iniciando transformações dos dados dos sensores...")
-        
-        # Cria uma cópia explícita para evitar o erro de referência do Pandas
+        """Aplica limpeza de ruídos, gera lags provados e balanceia o alvo."""
+        logger.info("Iniciando transformações produtivas dos dados dos sensores...")
         df = df.copy()
 
-        # 1. Garantir formatação da data e ordenação cronológica
+        #  Ajuste de nome de coluna, data e ordenação cronológica
+        if '% Silica Concentrat' in df.columns:
+            df = df.rename(columns={'% Silica Concentrat': '% Silica Concentrate'})
+            
         df['date'] = pd.to_datetime(df['date'])
         df = df.sort_values('date').reset_index(drop=True)
 
-        # Converte todas as colunas de sensores de texto para número real
-        # Varre todas as colunas, exceto a coluna 'date'
+        # Conversão e Tratamento de Força Bruta para Tipos Numéricos (Evita NaNs)
         for col in df.columns:
             if col != 'date':
                 if df[col].dtype == 'object':
-                    logger.info(f"Convertendo coluna ruidosa [{col}] de texto para float...")
-                    df[col] = df[col].astype(str).str.replace(',', '.')
+                    df[col] = df[col].astype(str).str.strip().str.replace(',', '.', regex=False)
                 df[col] = pd.to_numeric(df[col], errors='coerce')
 
-        # Remove linhas que eventualmente ficaram com valores nulos após a conversão forcada
-        df = df.dropna(subset=['Ore Pulp pH', 'Ore Pulp Density']).reset_index(drop=True)
+        # Preenchimento de nulos pela Média da coluna
+        for col in df.columns:
+            if col != 'date':
+                if df[col].isna().sum() > 0:
+                    df[col] = df[col].fillna(df[col].mean())
 
-        # Limpeza Estatística de Sensores (Agora 100% numéricos)
-        df = remover_outliers_iqr(df, coluna='Ore Pulp pH')
+        # Limpeza Estatística IQR (Apenas nas colunas que variam)
         df = remover_outliers_iqr(df, coluna='Ore Pulp Density')
 
-        # Criação de Lags Temporais
-        reagentes_criticos = ['Starch Flow', 'Amina Flow', 'Ore Pulp Flow']
-        for col in reagentes_criticos:
-            df[f'{col}_lag15'] = df[col].shift(periods=15)
-            df[f'{col}_lag30'] = df[col].shift(periods=30)
+        # Aplicação do Lag exato de 20 minutos (Provado no Notebook)
+        reagentes_e_processo = ['Starch Flow', 'Amina Flow', 'Ore Pulp Flow', 'Ore Pulp Density']
+        for col in reagentes_e_processo:
+            df[f'{col}_lag20'] = df[col].shift(periods=20)
 
-        # Remover linhas com valores nulos resultantes do efeito do shift
-        linhas_antes = len(df)
-        df = df.dropna().reset_index(drop=True)
-        linhas_depois = len(df)
+        # Remove linhas nulas geradas pelo shift
+        df = df.dropna(subset=[f'{col}_lag20' for col in reagentes_e_processo]).reset_index(drop=True)
+
+        # Estratégia de Subamostragem (Undersampling) para remover o vício do alvo (99% em 1.9)
+        df_variacao = df[df['% Silica Concentrate'] != 1.9]
+        df_travado = df[df['% Silica Concentrate'] == 1.9]
+
+        # Mantém uma amostra de 10.000 registros do valor majoritário para equilíbrio
+        tamanho_amostra = min(10000, len(df_travado))
+        df_travado_amostrado = df_travado.sample(n=tamanho_amostra, random_state=42)
+
+        # Une as bases novamente mantendo a ordenação temporal
+        df_final = pd.concat([df_variacao, df_travado_amostrado]).sort_values('date').reset_index(drop=True)
         
-        logger.info(f"Removidas {linhas_antes - linhas_depois} linhas devido aos lags temporais.")
-        return df
-
+        logger.info(f"Dataset reduzido de {len(df)} para {len(df_final)} linhas após balanceamento do alvo.")
+        return df_final
 
     def load(self, df: pd.DataFrame) -> None:
-        """Salva o DataFrame final, limpo e enriquecido, pronto para o Machine Learning."""
+        """Salva os dados processados e balanceados prontos para o MLflow."""
         caminho_saida = self.config.get("output_path", "data/dados_processados.csv")
         df.to_csv(caminho_saida, index=False)
-        logger.info(f"Dados processados carregados e salvos com sucesso em: {caminho_saida}")
+        logger.info(f"Dados balanceados salvos com sucesso em: {caminho_saida}")
 
 
 
-if __name__ == "__main__":
-    # Testando o pipeline completo localmente
-    pipeline = FlotationETL(
-        file_path="data/MiningProcess_Flotation_Plant_Database.csv", 
-        output_path="data/dados_processados.csv"
-    )
-    
-    pipeline.run()
+
+
+
+
