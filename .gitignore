@@ -13,6 +13,7 @@ __pycache__/
 venv/
 env/
 .env
+notebooks/.ipynb_checkpoints
 
 # VS Code e Sistemas Operacionais
 .vscode/
