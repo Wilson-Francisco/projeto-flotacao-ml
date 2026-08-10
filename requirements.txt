@@ -15,4 +15,5 @@ pydantic
 
 # Desenvolvimento e Testes
 pytest
+httpx
 ipykernel
