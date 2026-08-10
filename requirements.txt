@@ -1,6 +1,9 @@
 # Manipulação de Dados e Análise
 pandas
 numpy
+streamlit
+plotly
+statsmodels
 
 # Machine Learning e MLOps
 xgboost
