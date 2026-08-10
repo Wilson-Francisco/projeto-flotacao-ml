@@ -1,9 +1,9 @@
 # Dados e Modelos locais
 data/
-models/
+#models/
 
 # MLflow local 
-mlruns/
+# mlruns/
 mlartifacts/
 
 # Python e Ambientes Virtuais
