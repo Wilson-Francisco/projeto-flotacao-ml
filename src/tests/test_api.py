@@ -1,15 +1,32 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from unittest.mock import MagicMock
+import app.main
 
-# Inicializa o cliente de testes virtual do FastAPI
-client = TestClient(app)
+# 1. FIXTURE DE MONKEYPATCH: Roda ANTES de criar o cliente e simula o modelo online
+@pytest.fixture(autouse=True)
+def mock_modelo_mlflow(monkeypatch):
+    """
+    Injeta de forma automática um modelo simulado (Mock) no FastAPI 
+    para que os testes de integração passem mesmo sem a pasta mlruns/ na nuvem.
+    """
+    # Criamos um objeto falso que simula o comportamento do modelo do XGBoost
+    mock_model = MagicMock()
+    # Ensinamos o modelo falso a retornar um array de float (ex: valor 1.95%) ao receber dados
+    mock_model.predict.return_value = [1.95]
+    
+    # Forçamos o FastAPI a usar o nosso modelo simulado no lugar do original
+    monkeypatch.setattr(app.main, "modelo_sensor_virtual", mock_model)
+
+
+# Inicializa o cliente de testes virtual do FastAPI após a configuração do patch
+client = TestClient(app.main.app)
+
 
 @pytest.fixture
 def payload_sensores_valido():
     """
-    FIXTURE DO PYTEST: Centraliza e fornece um payload com dados operacionais 
-    médios e reais dos sensores da planta de flotação para os testes.
+    FIXTURE DO PYTEST: Fornece um payload com dados operacionais médios.
     """
     return {
         "% Iron Feed": 55.0,
@@ -42,7 +59,7 @@ def payload_sensores_valido():
 def test_endpoint_health_check():
     """
     Garante que o endpoint base '/' está respondendo com sucesso (200 OK)
-    e que o Sensor Virtual está online na inicialização da API.
+    e que o Sensor Virtual simulado responde como ONLINE.
     """
     resposta = client.get("/")
     
@@ -55,8 +72,7 @@ def test_endpoint_health_check():
 def test_endpoint_predict_com_payload_valido(payload_sensores_valido):
     """
     Garante que o endpoint '/predict' aceita dados válidos, executa a 
-    validação e o modelo XGBoost, retornando a predição da sílica com sucesso (200 OK).
-    Nota: Recebe a fixture 'payload_sensores_valido' como argumento do PyTest.
+    validação e o modelo simulado, retornando a predição com sucesso (200 OK).
     """
     resposta = client.post("/predict", json=payload_sensores_valido)
     
@@ -64,4 +80,4 @@ def test_endpoint_predict_com_payload_valido(payload_sensores_valido):
     dados = resposta.json()
     assert "silica_concentrate_predicted" in dados
     assert dados["unidade"] == "%"
-    assert isinstance(dados["silica_concentrate_predicted"], float)
+    assert dados["silica_concentrate_predicted"] == 1.95
