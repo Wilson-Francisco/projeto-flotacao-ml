@@ -49,3 +49,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
    
+    # Executa os testes automatizados da pasta src/tests/
+    - name: Run tests with PyTest
+      run: |
+        pytest
