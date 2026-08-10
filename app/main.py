@@ -75,7 +75,7 @@ def predizer_silica(payload: PayloadSensoresPlanta):
         
     try:
         # Converte o payload recebido do Pydantic em um dicionário do Python
-        # O model_dump(by_alias=True) garante que os nomes reais com espaços (ex: 'Amina Flow') sejam mantidos
+        # O model_dump(by_alias=True) garante que os nomes reais com espaços  sejam mantidos
         dados_dict = payload.model_dump(by_alias=True)
         
         # Transforma o registro em um DataFrame do Pandas (formato que o XGBoost espera)
