@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import mlflow.pyfunc
 from fastapi import FastAPI, HTTPException
 from app.schemas import PayloadSensoresPlanta
