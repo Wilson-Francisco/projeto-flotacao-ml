@@ -22,23 +22,30 @@ RUN_ID = os.getenv("MLFLOW_RUN_ID")
 # Inicializamos a variável global do modelo como None
 modelo_sensor_virtual = None
 
+
 try:
     if TRACKING_URI != "local" and RUN_ID:
         logger.info(f"[MLflow] Conectando ao servidor de tracking externo: {TRACKING_URI}")
         mlflow.set_tracking_uri(TRACKING_URI)
         
-        # Constrói a URI oficial para buscar o modelo direto do servidor remoto
-        model_uri = f"runs:/{RUN_ID}/modelo_xgboost_silica"
-        logger.info(f"[MLflow] Baixando artefato do modelo real da Run: {RUN_ID}")
-        
-        # O mlflow faz o download do modelo em segundo plano direto do servidor externo
-        modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
-        logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do servidor externo e está ONLINE.")
+        # Busca pelo caminho padrão do artefato registrado
+        try:
+            model_uri = f"runs:/{RUN_ID}/modelo_xgboost_silica"
+            logger.info(f"[MLflow] Tentando baixar artefato pela URI: {model_uri}")
+            modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
+        except Exception as e_first:
+            logger.warning(f"Falha na URI padrão ({e_first}). Tentando buscar direto na raiz dos artefatos da run...")
+            # Caso o DagsHub tenha jogado o modelo direto na raiz da execução
+            model_uri = f"runs:/{RUN_ID}/"
+            modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
+
+        if modelo_sensor_virtual is not None:
+            logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do servidor externo e está ONLINE.")
     else:
-        logger.critical("[Erro] Variáveis de ambiente MLFLOW_TRACKING_URI ou MLFLOW_RUN_ID não configuradas para o servidor externo.")
+        logger.critical("[Erro] Variáveis de ambiente MLFLOW_TRACKING_URI ou MLFLOW_RUN_ID não configuradas.")
         
 except Exception as e:
-    logger.critical(f"Erro crítico ao conectar ou baixar o modelo do servidor externo do MLflow: {e}")
+    logger.critical(f"Erro crítico definitivo ao conectar ou baixar o modelo do servidor externo: {e}")
 
 
 # Endpoints da API
