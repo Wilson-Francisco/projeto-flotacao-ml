@@ -24,22 +24,21 @@ modelo_sensor_virtual = None
 
 
 try:
-    if TRACKING_URI != "local" and RUN_ID:
+    if TRACKING_URI != "local":
         logger.info(f"[MLflow] Conectando ao servidor de tracking externo: {TRACKING_URI}")
         mlflow.set_tracking_uri(TRACKING_URI)
         
-        # MLflow para baixar modelos via Runs remota
-        model_uri = f"runs:/{RUN_ID}/modelo_xgboost_silica"
-        logger.info(f"[MLflow] Baixando artefato do modelo real da URI: {model_uri}")
+        # o Catálogo de Modelos Registrados (Model Registry)
+        model_uri = "models:/Modelo_Flotacao_XGBoost/1"
+        logger.info(f"[MLflow] Baixando a Versão 1 do Modelo Registrado: {model_uri}")
         
         modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
-        logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do servidor externo e está ONLINE.")
+        logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do Model Registry e está ONLINE.")
     else:
-        logger.critical("[Erro] Variáveis de ambiente MLFLOW_TRACKING_URI ou MLFLOW_RUN_ID não configuradas.")
+        logger.critical("[Erro] Variável de ambiente MLFLOW_TRACKING_URI não configurada para nuvem.")
         
 except Exception as e:
-    logger.critical(f"Erro crítico ao carregar o modelo do servidor externo: {e}")
-
+    logger.critical(f"Erro crítico ao carregar o modelo do Model Registry externo: {e}")
 
 
 # Endpoints da API
