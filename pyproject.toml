@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Ensine o PyTest a colocar a pasta atual e a pasta src no caminho de busca do Python
+pythonpath = [".", "src"]
+testpaths = ["src/tests"]
