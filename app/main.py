@@ -28,24 +28,18 @@ try:
         logger.info(f"[MLflow] Conectando ao servidor de tracking externo: {TRACKING_URI}")
         mlflow.set_tracking_uri(TRACKING_URI)
         
-        # Busca pelo caminho padrão do artefato registrado
-        try:
-            model_uri = f"runs:/{RUN_ID}/modelo_xgboost_silica"
-            logger.info(f"[MLflow] Tentando baixar artefato pela URI: {model_uri}")
-            modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
-        except Exception as e_first:
-            logger.warning(f"Falha na URI padrão ({e_first}). Tentando buscar direto na raiz dos artefatos da run...")
-            # Caso o DagsHub tenha jogado o modelo direto na raiz da execução
-            model_uri = f"runs:/{RUN_ID}/"
-            modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
-
-        if modelo_sensor_virtual is not None:
-            logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do servidor externo e está ONLINE.")
+        # MLflow para baixar modelos via Runs remota
+        model_uri = f"runs:/{RUN_ID}/modelo_xgboost_silica"
+        logger.info(f"[MLflow] Baixando artefato do modelo real da URI: {model_uri}")
+        
+        modelo_sensor_virtual = mlflow.pyfunc.load_model(model_uri)
+        logger.info("Sucesso! O Sensor Virtual Real (XGBoost) foi carregado do servidor externo e está ONLINE.")
     else:
         logger.critical("[Erro] Variáveis de ambiente MLFLOW_TRACKING_URI ou MLFLOW_RUN_ID não configuradas.")
         
 except Exception as e:
-    logger.critical(f"Erro crítico definitivo ao conectar ou baixar o modelo do servidor externo: {e}")
+    logger.critical(f"Erro crítico ao carregar o modelo do servidor externo: {e}")
+
 
 
 # Endpoints da API
