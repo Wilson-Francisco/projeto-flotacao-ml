@@ -6,7 +6,7 @@ Este projeto implementa um ecossistema completo de **Machine Learning e MLOps de
 
 O projeto foi totalmente conteinerizado e implantado em arquitetura de nuvem descentralizada e gratuita:
 
-*   **🖥️ Dashboard de Negócio & ROI (Streamlit)**: [https://streamlit.app]([https://streamlit.app](https://projeto-flotacao-ml-89zbzslxyokkgyshb6zuqn.streamlit.app/))
+*   **🖥️ Dashboard de Negócio & ROI (Streamlit)**: [https://streamlit.app](https://projeto-flotacao-ml-89zbzslxyokkgyshb6zuqn.streamlit.app/)
     *   *Painel visual com gráficos interativos de variabilidade, cálculo de impacto econômico anual e simulador operacional "What-If" para a diretoria.*
 *   **🧠 API de Inferência (FastAPI + Docker no Render)**: [https://onrender.com](https://onrender.com)
     *   *Interface do Swagger UI rodando em container isolado que executa previsões em milissegundos a partir dos dados em tempo real dos sensores.*
